@@ -12,32 +12,17 @@
 #include "ray.h"
 #include "hittable.h"
 
-/*
-  PPM Image Format
-  P3
-  3 2
-  255
-  The part above is the header
-  "P3" means this is a RGB color image in ASCII
-  "3 2" is the width and height of the image in pixels
-  "255" is the maximum value for each color
-  The part below is image data: RGB triplets
-  255   0   0  # red
-	0 255   0  # green
-	0   0 255  # blue
-  255 255   0  # yellow
-  255 255 255  # white
-	0   0   0  # black
-*/
-
 
 Color rayColor(const Ray& r, const Hittable& world, int depth) {
   if (depth <= 0)
 	return { 0, 0, 0 };
 
   if (auto hit = world.hit(r, 0.001, infinity); hit) {
-	auto target = hit->p + hit->normal + randomUnitVector();
-	return 0.5 * rayColor({ hit->p, target - hit->p }, world, depth - 1);
+	Ray scattered;
+	Color attenuation;
+	if (hit->material->scatter(r, hit.value(), attenuation, scattered))
+	  return attenuation * rayColor(scattered, world, depth - 1);
+	return { 0, 0, 0 };
   }
 
   auto unitDirection = normalize(r.direction());

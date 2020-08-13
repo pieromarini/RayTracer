@@ -6,7 +6,7 @@
 class Sphere : public Hittable {
   public:
 	Sphere() {}
-	Sphere(Point center, double radius) : m_center{ center }, m_radius{ radius } {}
+	Sphere(Point center, double radius, std::shared_ptr<Material> m) : m_center{ center }, m_radius{ radius }, m_material{ m } {}
 
 	/*
 	 * Sphere + Ray equation solving
@@ -31,6 +31,7 @@ class Sphere : public Hittable {
 		  hp.p = r.at(hp.t);
 		  auto outwardNormal = (hp.p - m_center) / m_radius;
 		  hp.setFrontFace(r, outwardNormal);
+		  hp.material = m_material;
 		  return { hp };
 		}
 
@@ -40,6 +41,7 @@ class Sphere : public Hittable {
 		  hp.p = r.at(hp.t);
 		  auto outwardNormal = (hp.p - m_center) / m_radius;
 		  hp.setFrontFace(r, outwardNormal);
+		  hp.material = m_material;
 		  return { hp };
 		}
 	  }
@@ -49,6 +51,7 @@ class Sphere : public Hittable {
 
 	Point m_center;
 	double m_radius;
+	std::shared_ptr<Material> m_material;
 };
 
 #endif

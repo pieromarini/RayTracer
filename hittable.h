@@ -2,11 +2,16 @@
 #define HITTABLE_H
 
 #include <optional>
+#include <memory>
+
 #include "ray.h"
+#include "material.h"
+
 
 struct HitPoint {
   Point p;
   vec3 normal;
+  std::shared_ptr<Material> material;
   double t;
   bool frontFace;
 
