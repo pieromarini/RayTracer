@@ -1,29 +1,21 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include <optional>
-#include <memory>
-
 #include "ray.h"
-#include "material.h"
+#include "vec3.h"
 
+class Material;
 
-struct HitPoint {
-  Point p;
+struct HitRecord {
+  float t;
+  vec3 p;
   vec3 normal;
-  std::shared_ptr<Material> material;
-  double t;
-  bool frontFace;
-
-  inline void setFrontFace(const Ray& r, const vec3& outwardNormal) {
-	frontFace = dot(r.direction(), outwardNormal) < 0;
-	normal = frontFace ? outwardNormal : -outwardNormal;
-  }
+  Material* mat;
 };
 
 class Hittable {
-  public:
-	virtual std::optional<HitPoint> hit(const Ray& r, double tMin, double tMax) const = 0;
+ public:
+  virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& hitrec) const = 0;
 };
 
 #endif

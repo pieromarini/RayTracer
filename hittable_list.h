@@ -1,42 +1,34 @@
 #ifndef HITTABLE_LIST_H
 #define HITTABLE_LIST_H
 
-#include <memory>
-#include <optional>
-#include <type_traits>
-#include <vector>
 #include "hittable.h"
 
 class HittableList : public Hittable {
-  public:
-	HittableList() {}
-	HittableList(std::shared_ptr<Hittable> obj) {
-	  add (obj);
-	}
+ public:
+  HittableList() = default;
+  HittableList(Hittable** l, int n);
+  virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& hitrec) const;
 
-	void clear() { m_objects.clear(); }
-	void add(std::shared_ptr<Hittable> obj) {
-	  m_objects.push_back(obj);
-	}
-
-	virtual std::optional<HitPoint> hit(const Ray& r, double tMin, double tMax) const override {
-	  HitPoint hp;
-	  auto hitAnything = false;
-	  auto closest = tMax;
-
-	  for (const auto& object : m_objects) {
-		if (auto hit = object->hit(r, tMin, closest); hit) {
-		  closest = hit->t;
-		  hp = hit.value();
-		  hitAnything = true;
-		}
-	  }
-
-	  return hitAnything ? std::optional<HitPoint>{ hp } : std::nullopt;
-	}
-
-  private:
-	std::vector<std::shared_ptr<Hittable>> m_objects;
+  Hittable** list;
+  int size;
 };
+
+HittableList::HittableList(Hittable** l, int n) : list(l), size(n) {}
+
+bool HittableList::hit(const Ray& r, float t_min, float t_max, HitRecord& hitrec) const {
+  HitRecord temp_rec;
+  bool hit_anything = false;
+  double closest_so_far = t_max;
+
+  for (int i = 0; i < size; i++) {
+    if (list[i]->hit(r, t_min, closest_so_far, temp_rec)) {
+      hit_anything = true;
+      closest_so_far = temp_rec.t;
+      hitrec = temp_rec;
+    }
+  }
+
+  return hit_anything;
+}
 
 #endif

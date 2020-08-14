@@ -1,143 +1,181 @@
 #ifndef VEC3_H
 #define VEC3_H
 
+#include <cassert>
+#include <cmath>
 #include <iostream>
-#include <math.h>
 
-#include "utils.h"
+class vec3 {
+ public:
+  vec3() = default;
+  vec3(float x, float y, float z);
+  inline float r() const;
+  inline float g() const;
+  inline float b() const;
 
-struct vec3 {
-  vec3() : data{ 0, 0, 0 } {}
-  vec3(double d1, double d2, double d3) : data{ d1, d2, d3 } {}
+  inline const vec3& operator+() const;
+  inline vec3 operator-() const;
+  inline float operator[](int idx) const;
+  inline float& operator[](int idx);
 
-  double x() const { return data[0]; }
-  double y() const { return data[1]; }
-  double z() const { return data[2]; }
+  inline vec3 operator+(const vec3& w) const;
+  inline vec3 operator-(const vec3& w) const;
+  inline vec3 operator*(const vec3& w) const;
+  inline vec3 operator/(const vec3& w) const;
+  inline vec3 operator*(float t) const;
+  inline vec3 operator/(float t) const;
+  inline vec3& operator+=(const vec3& v2);
+  inline vec3& operator-=(const vec3& v2);
+  inline vec3& operator*=(const vec3& v2);
+  inline vec3& operator/=(const vec3& v2);
+  inline vec3& operator*=(float t);
+  inline vec3& operator/=(float t);
 
-  inline static vec3 random() {
-	return { randomDouble(), randomDouble(), randomDouble() };
-  }
+  inline float magnitude() const;
+  inline float squareMagnitude() const;
 
-  inline static vec3 random(double min, double max) {
-	return { randomDouble(min, max), randomDouble(min, max), randomDouble(min, max) };
-  }
+  inline void normalize();
 
-  vec3 operator-() const { return { -data[0], -data[1], -data[2] }; }
-
-  double operator[](int index) const { return data[index]; }
-  double& operator[](int index) { return data[index]; }
-
-  vec3& operator+=(const vec3& rhs) {
-	data[0] += rhs.data[0];
-	data[1] += rhs.data[1];
-	data[2] += rhs.data[2];
-	return *this;
-  }
-
-  vec3& operator*=(const double scalar) {
-	data[0] *= scalar;
-	data[1] *= scalar;
-	data[2] *= scalar;
-	return *this;
-  }
-
-  vec3& operator/=(const double scalar) {
-	return *this *= 1 / scalar;
-  }
-
-  double magnitude() {
-	return std::sqrt(squaredMagnitude());
-  }
-
-  double squaredMagnitude() {
-	return data[0] * data[0] + data[1] * data[1] + data[2] * data[2];
-  }
-
-  double data[3];
+  float x, y, z;
 };
 
-inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
-  return out << v.data[0] << ' ' << v.data[1] << ' ' << v.data[2];
-}
+inline std::istream& operator>>(std::istream& is, vec3& v);
+inline std::ostream& operator>>(std::ostream& os, const vec3& v);
 
-inline vec3 operator+(const vec3& lhs, const vec3& rhs) {
-  return { lhs.data[0] + rhs.data[0], lhs.data[1] + rhs.data[1], lhs.data[2] + rhs.data[2] };
-}
+vec3::vec3(float x, float y, float z) : x{x}, y{y}, z{z} {}
 
-inline vec3 operator-(const vec3& lhs, const vec3& rhs) {
-  return { lhs.data[0] - rhs.data[0], lhs.data[1] - rhs.data[1], lhs.data[2] - rhs.data[2] };
-}
+inline float vec3::r() const { return x; }
 
-inline vec3 operator*(const vec3& lhs, const vec3& rhs) {
-  return { lhs.data[0] * rhs.data[0], lhs.data[1] * rhs.data[1], lhs.data[2] * rhs.data[2] };
-}
+inline float vec3::g() const { return y; }
 
-inline vec3 operator*(double scalar, const vec3& rhs) {
-  return { scalar * rhs.data[0], scalar * rhs.data[1], scalar * rhs.data[2] };
-}
+inline float vec3::b() const { return z; }
 
-inline vec3 operator*(const vec3& lhs, double scalar) {
-  return scalar * lhs;
-}
+inline const vec3& vec3::operator+() const { return *this; }
 
-inline vec3 operator/(vec3 lhs, double scalar) {
-  return (1 / scalar) * lhs;
-}
+inline vec3 vec3::operator-() const { return vec3(-x, -y, -z); }
 
-inline double dot(const vec3& lhs, const vec3& rhs) {
-  return lhs.data[0] * rhs.data[0] + lhs.data[1] * rhs.data[1] + lhs.data[2] * rhs.data[2];
-}
-
-inline vec3 cross(const vec3& lhs, const vec3& rhs) {
-  return {
-	lhs.data[1] * rhs.data[2] - lhs.data[2] * rhs.data[1],
-	lhs.data[2] * rhs.data[0] - lhs.data[0] * rhs.data[2],
-	lhs.data[0] * rhs.data[1] - lhs.data[1] * rhs.data[0]
-  };
-}
-
-vec3 normalize(vec3 v) {
-  return v / v.magnitude();
-}
-
-vec3 reflect(const vec3& v, const vec3& n) {
-  return v - 2 * dot(v, n) * n;
-}
-
-vec3 refract(const vec3& uv, const vec3& n, double etaiOverEtat) {
-  auto cosTheta = dot(-uv, n);
-  auto rOutOrth = etaiOverEtat * (uv + cosTheta * n);
-  auto  rOutParallel = -std::sqrt(fabs(1.0 - rOutOrth.squaredMagnitude())) * n;
-  return rOutOrth * rOutParallel;
-}
-
-vec3 randomInUnitSphere() {
-  while(true) {
-	auto p = vec3::random(-1, 1);
-	if (p.squaredMagnitude() >= 1)
-	  continue;
-
-	return p;
+inline float vec3::operator[](int idx) const {
+  assert(idx >= 0 && idx < 3);
+  switch (idx) {
+    case 0:
+      return x;
+    case 1:
+      return y;
+    default:
+      return z;
   }
 }
 
-vec3 randomInUnitDisk() {
-  while(true) {
-	auto p = vec3{ randomDouble(-1, 1), randomDouble(-1, 1), 0 };
-	if (p.squaredMagnitude() >= 1)
-	  continue;
-	return p;
+inline float& vec3::operator[](int idx) {
+  assert(idx >= 0 && idx < 3);
+  switch (idx) {
+    case 0:
+      return x;
+    case 1:
+      return y;
+    default:
+      return z;
   }
 }
 
-vec3 randomUnitVector() {
-  auto a  = randomDouble(0, 2 * pi);
-  auto z  = randomDouble(-1, 1);
-  auto r = std::sqrt(1 - z * z);
-  return { r * std::cos(a), r * std::sin(a), z };
+inline vec3 vec3::operator+(const vec3& w) const {
+  return vec3(x + w.x, y + w.y, z + w.z);
 }
 
-using Point = vec3;
-using Color = vec3;
+inline vec3 vec3::operator-(const vec3& w) const {
+  return vec3(x - w.x, y - w.y, z - w.z);
+}
+
+inline vec3 vec3::operator*(const vec3& w) const {
+  return vec3(x * w.x, y * w.y, z * w.z);
+}
+
+inline vec3 vec3::operator/(const vec3& w) const {
+  assert(w.x != 0.f && w.y != 0.f && w.z != 0.f);
+  return vec3(x / w.x, y / w.y, z / w.z);
+}
+
+inline vec3 vec3::operator*(float t) const { return vec3(x * t, y * t, z * t); }
+
+inline vec3 vec3::operator/(float t) const {
+  assert(t != 0.f);
+  return vec3(x / t, y / t, z / t);
+}
+
+inline vec3& vec3::operator+=(const vec3& w) {
+  x += w.x;
+  y += w.y;
+  z += w.z;
+  return *this;
+}
+
+inline vec3& vec3::operator-=(const vec3& w) {
+  x -= w.x;
+  y -= w.y;
+  z -= w.z;
+  return *this;
+}
+
+inline vec3& vec3::operator*=(const vec3& w) {
+  x *= w.x;
+  y *= w.y;
+  z *= w.z;
+  return *this;
+}
+
+inline vec3& vec3::operator/=(const vec3& w) {
+  x /= w.x;
+  y /= w.y;
+  z /= w.z;
+  return *this;
+}
+
+inline vec3& vec3::operator*=(float t) {
+  x *= t;
+  y *= t;
+  z *= t;
+  return *this;
+}
+
+inline vec3& vec3::operator/=(float t) {
+  x /= t;
+  y /= t;
+  z /= t;
+  return *this;
+}
+
+inline float vec3::magnitude() const { return sqrt(x * x + y * y + z * z); }
+
+inline float vec3::squareMagnitude() const { return x * x + y * y + z * z; }
+
+inline void vec3::normalize() {
+  const float k = 1.0 / magnitude();
+  x *= k;
+  y *= k;
+  z *= k;
+}
+
+inline float dot(const vec3& v, const vec3& w) {
+  return v.x * w.x + v.y * w.y + v.z * w.z;
+}
+
+inline vec3 cross(const vec3& v, const vec3& w) {
+  return vec3(v.y * w.z - v.z * w.y, -(v.x * w.z - v.z * w.x),
+              v.x * w.y - v.y * w.x);
+}
+
+inline vec3 normalize(vec3 v) { return v / v.magnitude(); }
+
+inline vec3 operator*(float t, const vec3& v) { return v * t; }
+
+inline std::istream& operator>>(std::istream& is, vec3& v) {
+  is >> v.x >> v.y >> v.z;
+  return is;
+}
+
+inline std::ostream& operator>>(std::ostream& os, const vec3& v) {
+  os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+  return os;
+}
 
 #endif

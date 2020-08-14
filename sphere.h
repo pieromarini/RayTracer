@@ -2,56 +2,49 @@
 #define SPHERE_H
 
 #include "hittable.h"
+#include "material.h"
 
 class Sphere : public Hittable {
-  public:
-	Sphere() {}
-	Sphere(Point center, double radius, std::shared_ptr<Material> m) : m_center{ center }, m_radius{ radius }, m_material{ m } {}
+ public:
+  Sphere() = default;
+  Sphere(vec3 c, float r, Material* mat);
+  virtual bool hit(const Ray& r, float t_min, float t_max, HitRecord& hitrec) const;
 
-	/*
-	 * Sphere + Ray equation solving
-	 * (P - C) * (P - C) = r^2
-	 * (A + tb - C) * (A + tb - C) = r^2
-	 * Evaluate discriminant > 0 (2 real solutions) to know if the sphere intersects.
-	 */
-	virtual std::optional<HitPoint> hit(const Ray& r, double tMin, double tMax) const override {
-	  auto oc = r.origin() - m_center;
-	  auto a = r.direction().squaredMagnitude();
-	  auto bHalf = dot(oc, r.direction());
-	  auto c = oc.squaredMagnitude() - m_radius * m_radius;
-	  auto discriminant = bHalf * bHalf - a * c;
-
-	  if (discriminant > 0) {
-		HitPoint hp;
-		auto root = std::sqrt(discriminant);
-
-		auto tmp = (-bHalf - root) / a;
-		if (tmp < tMax && tmp > tMin) {
-		  hp.t = tmp;
-		  hp.p = r.at(hp.t);
-		  auto outwardNormal = (hp.p - m_center) / m_radius;
-		  hp.setFrontFace(r, outwardNormal);
-		  hp.material = m_material;
-		  return { hp };
-		}
-
-		tmp = (-bHalf + root) / a;
-		if (tmp < tMax && tmp > tMin) {
-		  hp.t = tmp;
-		  hp.p = r.at(hp.t);
-		  auto outwardNormal = (hp.p - m_center) / m_radius;
-		  hp.setFrontFace(r, outwardNormal);
-		  hp.material = m_material;
-		  return { hp };
-		}
-	  }
-
-	  return {};
-	}
-
-	Point m_center;
-	double m_radius;
-	std::shared_ptr<Material> m_material;
+  vec3 center;
+  float radius;
+  Material* mat;
 };
+
+Sphere::Sphere(vec3 c, float r, Material* mat)
+    : center(c), radius(r), mat(mat) {}
+
+bool Sphere::hit(const Ray& r, float t_min, float t_max, HitRecord& hitrec) const {
+  const vec3 dir = r.direction();
+  const vec3 oc = r.origin() - center;
+  const float a = dot(dir, dir);
+  const float b = 2.0f * dot(dir, oc);
+  const float c = dot(oc, oc) - radius * radius;
+  const float discriminant = b * b - 4.0f * a * c;
+
+  if (discriminant > 0.0f) {
+    float tmp = (-b - sqrt(discriminant)) / (2.0f * a);
+    if (tmp < t_max && tmp > t_min) {
+      hitrec.t = tmp;
+      hitrec.p = r(tmp);
+      hitrec.normal = (hitrec.p - center) / radius;
+      hitrec.mat = mat;
+      return true;
+    }
+    tmp = (-b + sqrt(discriminant)) / (2.0f * a);
+    if (tmp < t_max && tmp > t_min) {
+      hitrec.t = tmp;
+      hitrec.p = r(tmp);
+      hitrec.normal = (hitrec.p - center) / radius;
+      hitrec.mat = mat;
+      return true;
+    }
+  }
+  return false;
+}
 
 #endif

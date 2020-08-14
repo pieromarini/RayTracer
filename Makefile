@@ -1,12 +1,13 @@
-OBJECTS = main.cpp
+CXX=g++
+OBJECTS = main.cpp raytracer.h timer.h
+EXE = main
 STD = -std=c++17
-MYFLAGS = -g -Wall -Wextra -Wshadow -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wnull-dereference -Wdouble-promotion -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wuseless-cast
-LINK = -lsfml-graphics -lsfml-window -lsfml-system
-CXX = g++
-EXEC = main
+CXX_FLAGS = -g -Wall -Wextra -Wshadow -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wnull-dereference -Wdouble-promotion -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wuseless-cast -O3 -DNDEBUG
+
+.PHONY: clean
 
 all: $(OBJECTS)
-	$(CXX) $(STD) $(MYFLAGS) $(OBJECTS) -o $(EXEC) $(LINK)
+	$(CXX) $(STD) $(CXX_FLAGS) -o $(EXE) main.cpp -lsfml-graphics -lsfml-window -lsfml-system -lpthread
 
-clean: 
-	rm $(EXEC)
+clean:
+	rm -rf *.o main
