@@ -8,6 +8,9 @@ vec3 randomInUnitSphere();
 
 class Material {
  public:
+  virtual vec3 emitted(double u, double v, const vec3& p) const {
+	return vec3(0, 0, 0);
+  }
   virtual bool scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const = 0;
 };
 
@@ -23,17 +26,16 @@ class Lambertian : public Material {
   vec3 albedo;
 };
 
-Lambertian::Lambertian(const vec3& a) : albedo(a) {}
+inline Lambertian::Lambertian(const vec3& a) : albedo(a) {}
 
-bool Lambertian::scatter(const Ray& rayIn, const HitRecord& rec,
-                         vec3& attenuation, Ray& scattered) const {
+inline bool Lambertian::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const {
   vec3 target = rec.p + rec.normal + randomInUnitSphere();
   scattered = Ray(rec.p, target - rec.p);
   attenuation = albedo;
   return true;
 }
 
-vec3 reflect(const vec3& v, const vec3& n) { return v - 2.0f * dot(v, n) * n; }
+inline vec3 reflect(const vec3& v, const vec3& n) { return v - 2.0f * dot(v, n) * n; }
 
 class Metal : public Material {
  public:
@@ -44,32 +46,32 @@ class Metal : public Material {
   float fuzz;
 };
 
-Metal::Metal(const vec3& a, float f) : albedo(a) {
+inline Metal::Metal(const vec3& a, float f) : albedo(a) {
   if (f < 1.0f)
-    fuzz = f;
+	fuzz = f;
   else
-    fuzz = 1.0f;
+	fuzz = 1.0f;
 }
 
-bool Metal::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const {
+inline bool Metal::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const {
   vec3 reflected = reflect(normalize(rayIn.direction()), rec.normal);
   scattered = Ray(rec.p, reflected + fuzz * randomInUnitSphere());
   attenuation = albedo;
   return dot(scattered.direction(), rec.normal) > 0;
 }
 
-bool refract(const vec3& v, const vec3& n, float NIoverNT, vec3& refracted) {
+inline bool refract(const vec3& v, const vec3& n, float NIoverNT, vec3& refracted) {
   vec3 uv = normalize(v);
   float dt = dot(uv, n);
   float discriminant = 1.f - NIoverNT * NIoverNT * (1.f - dt * dt);
   if (discriminant > 0) {
-    refracted = NIoverNT * (uv - dt * n) - n * std::sqrt(discriminant);
-    return true;
+	refracted = NIoverNT * (uv - dt * n) - n * std::sqrt(discriminant);
+	return true;
   }
   return false;
 }
 
-float schlick(float cosine, float ref_idx) {
+inline float schlick(float cosine, float ref_idx) {
   float r0 = (1.f - ref_idx) / (1.f + ref_idx);
   r0 = r0 * r0;
   return r0 + (1.f - r0) * pow((1.f - cosine), 5.f);
@@ -83,9 +85,9 @@ class Dielectric : public Material {
   float ref_idx;
 };
 
-Dielectric::Dielectric(float ri) : ref_idx{ri} {}
+inline Dielectric::Dielectric(float ri) : ref_idx{ ri } {}
 
-bool Dielectric::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const {
+inline bool Dielectric::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuation, Ray& scattered) const {
   vec3 outward_normal;
   vec3 reflected = reflect(rayIn.direction(), rec.normal);
   float NIoverNT;
@@ -94,30 +96,30 @@ bool Dielectric::scatter(const Ray& rayIn, const HitRecord& rec, vec3& attenuati
   float reflect_prob;
   float cosine;
   if (dot(rayIn.direction(), rec.normal) > 0) {
-    outward_normal = -rec.normal;
-    NIoverNT = ref_idx;
-    cosine = dot(rayIn.direction(), rec.normal) / rayIn.direction().magnitude();
-    cosine = sqrt(1 - ref_idx * ref_idx * (1 - cosine * cosine));
+	outward_normal = -rec.normal;
+	NIoverNT = ref_idx;
+	cosine = dot(rayIn.direction(), rec.normal) / rayIn.direction().magnitude();
+	cosine = sqrt(1 - ref_idx * ref_idx * (1 - cosine * cosine));
   } else {
-    outward_normal = rec.normal;
-    NIoverNT = 1.0 / ref_idx;
-    cosine = -dot(rayIn.direction(), rec.normal) / rayIn.direction().magnitude();
+	outward_normal = rec.normal;
+	NIoverNT = 1.0 / ref_idx;
+	cosine = -dot(rayIn.direction(), rec.normal) / rayIn.direction().magnitude();
   }
   if (refract(rayIn.direction(), outward_normal, NIoverNT, refracted))
-    reflect_prob = schlick(cosine, ref_idx);
+	reflect_prob = schlick(cosine, ref_idx);
   else
-    reflect_prob = 1.0;
+	reflect_prob = 1.0;
   if (drand48() < reflect_prob)
-    scattered = Ray(rec.p, reflected);
+	scattered = Ray(rec.p, reflected);
   else
-    scattered = Ray(rec.p, refracted);
+	scattered = Ray(rec.p, refracted);
   return true;
 }
 
-vec3 randomInUnitSphere() {
+inline vec3 randomInUnitSphere() {
   vec3 p;
   do {
-    p = 2.0f * vec3(drand48(), drand48(), drand48()) - vec3(1, 1, 1);
+	p = 2.0f * vec3(drand48(), drand48(), drand48()) - vec3(1, 1, 1);
   } while (p.squareMagnitude() >= 1.0f);
   return p;
 }
