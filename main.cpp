@@ -15,16 +15,18 @@ constexpr unsigned WIDTH = 1024;
 constexpr unsigned HEIGHT = 512;
 
 constexpr unsigned N = 16;
-constexpr unsigned N_SAMPLES = 3000;
+constexpr unsigned N_SAMPLES = 5000;
 
 constexpr unsigned W_CNT = (WIDTH + N - 1) / N;
 constexpr unsigned H_CNT = (HEIGHT + N - 1) / N;
 
-const vec3 background = { 0.0, 0.0, 0.0 };
+constexpr int maxDepth = 800;
+
+const vec3 background = { 0.1, 0.1, 0.1 };
 
 Hittable* world;
 
-vec3 lookfrom = vec3(5.f, 1.f, 5.5f);
+vec3 lookfrom = vec3(8.f, 1.9f, 6.5f);
 vec3 lookat = vec3(1.f, 0.5f, 0.f);
 vec3 vup = vec3(0.f, 1.f, 0.f);
 float distToFocus = (lookfrom - lookat).magnitude() * 2.f;
@@ -148,7 +150,7 @@ struct Task {
 			const float u = float(x + drand48()) / float(WIDTH);
 			const float v = float(y + drand48()) / float(HEIGHT);
 			Ray r = cam.getRay(u, v);
-			const vec3 col = rayColor(r, background, world, 50);
+			const vec3 col = rayColor(r, background, world, maxDepth);
 
 			pixels.accumulate(x, y, col);
 		  }
